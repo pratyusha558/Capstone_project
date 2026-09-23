@@ -83,7 +83,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 import pandas as pd
 
-df = pd.read_csv("C:/Users/praty/OneDrive/Desktop/capstone/data_pipeline/books_data.csv")
+df = pd.read_csv("books_data.csv")
 
 #extracting the number and coonverting into float
 df["price_gbp"] = pd.to_numeric(
