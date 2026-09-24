@@ -110,8 +110,7 @@ df["star_rating"] = df["star_rating"].map(rating_map)
 df['price_inr'] = df['price_gbp']*105.50
 
 #converting the availability statu into boolean
-df["in_stock"] = df["availability"].str.contains("In stock").astype(int)
-
+df["in_stock"] = df["availability"].str.contains("In stock")
 df.to_csv("books_cleaned.csv", index=False, encoding="utf-8")
 
 #Database
