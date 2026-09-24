@@ -1,308 +1,270 @@
-# Titanic Analytics & Machine Learning
+# Books to Scrape — Web Scraping, Cleaning & SQLite Analysis
 
 ## Project Overview
 
-This project analyzes the Titanic dataset using Exploratory Data Analysis (EDA), preprocessing, classification, regression, hyperparameter tuning, and model evaluation.
+This project scrapes book information from [Books to Scrape](https://books.toscrape.com/) using Python's `requests` and `BeautifulSoup` libraries.
 
-The main goal is to understand the factors related to passenger survival and build machine learning models to predict survival. A separate regression model is also used to predict passenger fare.
+The scraper collects books from the first **5 pages** of the "All Products" catalogue, resulting in **100 books**.
 
----
+For each book, the following information is collected:
 
-## Dataset
+* `title`
+* `price`
+* `star_rating`
+* `availability`
+* `category`
 
-The Titanic dataset contains information about passengers, including:
+The scraped data is then cleaned using Pandas and inserted into a SQLite database containing two related tables:
 
-* Passenger class (`pclass`)
-* Age (`age`)
-* Gender (`sex`)
-* Number of siblings/spouses (`sibsp`)
-* Number of parents/children (`parch`)
-* Fare (`fare`)
-* Port of embarkation (`embarked`)
-* Survival status (`survived`)
+* `categories`
+* `books`
 
-The raw dataset was saved as `titanic.csv`.
-
----
-
-## 1. Exploratory Data Analysis
-
-The dataset was explored using:
-
-* `df.info()`
-* `df.describe()`
-* Dataset shape
-* Missing-value percentages
-* Histograms
-* Box plots
-* Survival-rate analysis
-* Correlation matrix and heatmap
-
-The survival classes were imbalanced, with approximately 62% of passengers not surviving and 38% surviving.
-
-### Univariate Analysis
-
-Histograms and box plots were created for `age` and `fare`.
-
-The fare distribution was right-skewed because the mean fare was higher than the median and mode. The box plot also showed several high-fare outliers.
-
-### Bivariate Analysis
-
-Survival rates were compared by:
-
-* Sex
-* Passenger class
-* Sex and passenger class together
-
-A correlation matrix was created using:
-
-`survived`, `pclass`, `age`, `sibsp`, `parch`, and `fare`.
-
-### Multivariate Analysis
-
-Multiple charts were created to understand the relationship between passenger characteristics and survival.
-
-The analysis showed that survival was associated with factors such as gender, passenger class, and fare.
-
----
-
-## 2. Missing Value Handling
-
-Missing values were handled based on their percentage and meaning.
-
-* `age` → median imputation
-* `embarked` → rows with missing values were removed
-* `embark_town` → rows with missing values were removed
-* `deck` → missing values were treated as a separate `"missing"` category
-
-For machine learning, preprocessing was performed using a pipeline so that preprocessing steps were fitted only on the training data.
-
----
-
-## 3. Feature Preprocessing
-
-The classification models used:
-
-### Numerical Features
-
-* `pclass`
-* `age`
-* `sibsp`
-* `parch`
-* `fare`
-
-Missing numerical values were handled using median imputation and numerical features were standardized using `StandardScaler`.
-
-### Categorical Features
-
-* `sex`
-* `embarked`
-
-Missing categorical values were handled using the most frequent value and categorical variables were encoded using `OneHotEncoder`.
-
-A `ColumnTransformer` and `Pipeline` were used to combine these preprocessing steps with the machine learning models.
-
----
-
-## 4. Classification Models
-
-Three classifiers were trained using the same train/test split:
-
-1. Logistic Regression
-2. Decision Tree
-3. Random Forest
-
-The data was split using stratification so that the proportion of survivors and non-survivors remained similar in the training and testing sets.
-
-The Decision Tree was also visualized using `plot_tree`.
-
----
-
-## 5. Classification Evaluation
-
-The classifiers were evaluated using:
-
-* Accuracy
-* Precision
-* Recall
-* F1 Score
-* AUC
-* Confusion Matrix
-* ROC Curve
-
-The results were:
-
-| Model               | Accuracy | Precision |   Recall |       F1 |      AUC |
-| ------------------- | -------: | --------: | -------: | -------: | -------: |
-| Logistic Regression | 0.808989 |  0.783333 | 0.691176 | 0.734375 | 0.860963 |
-| Decision Tree       | 0.808989 |  0.814815 | 0.647059 | 0.721311 | 0.856016 |
-| Random Forest       | 0.820225 |  0.781250 | 0.735294 | 0.757576 | 0.817914 |
-
-Random Forest achieved the highest accuracy, recall, and F1 score among the three classifiers. Logistic Regression achieved the highest AUC.
-
----
-
-## 6. Class Imbalance Handling
-
-The dataset contained more non-survivors than survivors.
-
-Three imbalance strategies were compared using Logistic Regression:
-
-1. Baseline without imbalance handling
-2. `class_weight='balanced'`
-3. SMOTE oversampling
-
-SMOTE was applied only to the training data to avoid data leakage.
-
-| Method                | Precision |   Recall | F1 Score |
-| --------------------- | --------: | -------: | -------: |
-| Baseline              |  0.783333 | 0.691176 | 0.734375 |
-| Class Weight Balanced |  0.718310 | 0.750000 | 0.733813 |
-| SMOTE                 |  0.735294 | 0.735294 | 0.735294 |
-
-SMOTE gave the highest F1 score and provided an equal balance between precision and recall. Class weighting gave higher recall, while the baseline gave higher precision.
-
----
-
-## 7. Hyperparameter Tuning
-
-`GridSearchCV` was used to tune the Random Forest model.
-
-The following parameters were searched:
-
-* `n_estimators`
-* `max_depth`
-* `max_features`
-
-Five-fold cross-validation was used to compare different parameter combinations.
-
-The Random Forest was created with `oob_score=True` so that the Out-of-Bag (OOB) score could be calculated.
-
-The best parameter combination and OOB score were obtained from the GridSearchCV results.
-
----
-
-## 8. Fare Prediction Using Linear Regression
-
-A multivariate Linear Regression model was created to predict `fare` using the other available passenger features.
-
-The model was evaluated using:
-
-* Mean Absolute Error (MAE)
-* Root Mean Squared Error (RMSE)
-* R²
-* Adjusted R²
-
-Results:
-
-| Metric      |     Value |
-| ----------- | --------: |
-| MAE         | 21.098604 |
-| RMSE        | 41.702105 |
-| R²          |  0.348163 |
-| Adjusted R² |  0.309130 |
-
-The model explains about 34.8% of the variation in fare.
-
-A residual plot was also created. The residuals showed increasing spread at higher predicted fare values, indicating some heteroscedasticity.
-
----
-
-## 9. Final Model Comparison
-
-Classification and regression metrics were kept as separate metric groups because they measure different types of model performance.
-
-| Model               | Accuracy | Precision |   Recall |       F1 |      AUC |       MAE |      RMSE |       R² | Adjusted R² |
-| ------------------- | -------: | --------: | -------: | -------: | -------: | --------: | --------: | -------: | ----------: |
-| Logistic Regression | 0.808989 |  0.783333 | 0.691176 | 0.734375 | 0.860963 |         — |         — |        — |           — |
-| Decision Tree       | 0.808989 |  0.814815 | 0.647059 | 0.721311 | 0.856016 |         — |         — |        — |           — |
-| Random Forest       | 0.820225 |  0.781250 | 0.735294 | 0.757576 | 0.817914 |         — |         — |        — |           — |
-| Linear Regression   |        — |         — |        — |        — |        — | 21.098604 | 41.702105 | 0.348163 |    0.309130 |
-
-### Final Recommendation
-
-Random Forest is recommended as the classification model because it achieved the highest accuracy (82.02%), recall (73.53%), and F1 score (75.76%). Its F1 score shows a good balance between precision and recall. Logistic Regression had the highest AUC at 0.861, while Decision Tree had the highest precision at 81.48%. Overall, Random Forest provided the strongest combination of the main classification metrics in this experiment.
-
----
-
-## 10. Saving the Complete Pipeline
-
-The complete Random Forest pipeline, including preprocessing and the trained model, was saved using Joblib.
-
-```python
-import joblib
-
-joblib.dump(
-    full_pipeline,
-    'titanic_random_forest_pipeline.joblib'
-)
-```
-
-The saved pipeline was then reloaded:
-
-```python
-loaded_pipeline = joblib.load(
-    'titanic_random_forest_pipeline.joblib'
-)
-```
-
-The reloaded pipeline was tested on raw input data and successfully produced predictions.
-
-This confirms that the saved artifact can perform preprocessing and prediction end-to-end without manually preprocessing new data.
+SQL queries are then executed to demonstrate filtering, sorting, limiting, distinct values, range filtering, and table joins. The JOIN result is also reproduced using Pandas `merge()`.
 
 ---
 
 ## Technologies Used
 
-* Python
-* Pandas
-* NumPy
-* Matplotlib
-* Seaborn
-* Scikit-learn
-* Imbalanced-learn
-* Joblib
-* Jupyter Notebook / VS Code
+* Python 3
+* `requests`
+* `BeautifulSoup4`
+* `pandas`
+* `sqlite3`
+* SQLite
 
 ---
 
-## Project Structure
+## Installation
 
-```text
-analytics/
-│
-├── titanic.csv
-├── titanic_random_forest_pipeline.joblib
-├── README.md
-└── notebook / Python files
+Install the required Python libraries:
+
+```bash
+pip install requests beautifulsoup4 pandas
 ```
+
+`sqlite3` is included with standard Python installations, so it does not need to be installed separately.
 
 ---
 
 ## How to Run
 
-### 1. Install the required libraries
+1. Open the project folder in VS Code.
+
+2. Make sure the required packages are installed:
 
 ```bash
-pip install pandas numpy matplotlib seaborn scikit-learn imbalanced-learn joblib
+pip install requests beautifulsoup4 pandas
 ```
 
-### 2. Open the project
+3. Run the Python script:
 
-Open the `analytics` folder in VS Code.
+```bash
+python your_python_file.py
+```
 
-### 3. Run the notebook or Python file
+The script performs the scraping, cleaning, database insertion, and SQL/Pandas analysis.
 
-Run the cells/scripts in order to perform:
+---
 
-* Data loading
-* EDA
-* Data preprocessing
-* Classification
-* Imbalance handling
-* Hyperparameter tuning
-* Regression
-* Model evaluation
-* Pipeline saving
+## Scraping Scope
 
-The saved `.joblib` file can then be loaded and used for predictions on new raw data.
+The project uses the first five catalogue pages:
+
+```text
+https://books.toscrape.com/
+https://books.toscrape.com/catalogue/page-2.html
+https://books.toscrape.com/catalogue/page-3.html
+https://books.toscrape.com/catalogue/page-4.html
+https://books.toscrape.com/catalogue/page-5.html
+```
+
+Each page contains 20 books, giving a total of:
+
+```text
+5 pages × 20 books = 100 books
+```
+
+The individual book pages were also requested to extract the book category from the breadcrumb navigation.
+
+---
+
+## Parsing Decisions
+
+### Title
+
+The title was extracted from the book card using the `title` attribute of the book link.
+
+### Price
+
+The original scraped price is preserved in the `price` column.
+
+A separate numeric `price_gbp` column was created for analysis.
+
+Currency symbols or unexpected characters were removed by extracting the numeric portion of the price.
+
+For example:
+
+```text
+£51.77 → 51.77
+```
+
+The cleaned `price_gbp` value is stored as a floating-point number.
+
+### Star Rating
+
+The website provides ratings as text:
+
+```text
+One
+Two
+Three
+Four
+Five
+```
+
+These values were converted into integers for database analysis:
+
+```text
+One   → 1
+Two   → 2
+Three → 3
+Four  → 4
+Five  → 5
+```
+
+The original `star_rating` text was retained in the cleaned dataset.
+
+### Availability
+
+The website provides availability as text such as:
+
+```text
+In stock
+Out of stock
+```
+
+For the SQLite database, this was converted into an integer representation:
+
+```text
+In stock     → 1
+Out of stock → 0
+```
+
+SQLite does not have a separate Boolean storage type, so integers were used for the Boolean-like field `in_stock`.
+
+### Missing or Unparseable Numeric Values
+
+If a numeric field could not be parsed, the invalid value was converted to `NaN`.
+
+For numeric fields, missing values were handled using **median imputation** rather than allowing the pipeline to crash.
+
+Median imputation was chosen because it provides a reasonable central value while being less affected by unusually high or low prices than the mean.
+
+---
+
+## SQLite Database Schema
+
+### `categories`
+
+```sql
+CREATE TABLE categories (
+    category_id INTEGER PRIMARY KEY,
+    category_name TEXT UNIQUE
+);
+```
+
+Each unique category is stored once.
+
+### `books`
+
+```sql
+CREATE TABLE books (
+    book_id INTEGER PRIMARY KEY,
+    title TEXT,
+    price_gbp REAL,
+    price_inr REAL,
+    rating INTEGER,
+    in_stock INTEGER,
+    category_id INTEGER REFERENCES categories(category_id)
+);
+```
+
+The `category_id` in the `books` table references the corresponding category in the `categories` table.
+
+This creates a relationship between the two tables.
+
+---
+
+## SQL Analysis
+
+The project executes SQL queries demonstrating:
+
+* `SELECT`
+* `WHERE`
+* `ORDER BY`
+* `LIMIT`
+* `DISTINCT`
+* `BETWEEN`
+* `JOIN`
+
+The query strings and their outputs are saved in:
+
+```text
+sql_query_outputs.txt
+```
+
+---
+
+## Pandas and SQL Comparison
+
+At least two SQL query results are read into Pandas using:
+
+```python
+pd.read_sql()
+```
+
+The SQL JOIN result is independently reproduced using:
+
+```python
+pd.merge()
+```
+
+on the in-memory `books` and `categories` DataFrames.
+
+The SQL JOIN result and Pandas merge result are compared using:
+
+```python
+df_sql_join.equals(df_merged)
+```
+
+The comparison confirms whether both approaches produce equivalent results.
+
+---
+
+## Project Files
+
+Typical project files include:
+
+```text
+project/
+│
+├── your_python_file.py
+├── books_data.csv
+├── books_cleaned.csv
+├── books.db
+└── sql_query_outputs.txt
+```
+
+### File descriptions
+
+* `your_python_file.py` — scraping, cleaning, database insertion, SQL queries, and Pandas analysis.
+* `books_data.csv` — original scraped dataset.
+* `books_cleaned.csv` — cleaned dataset used for analysis/database insertion.
+* `books.db` — SQLite database containing the `books` and `categories` tables.
+* `sql_query_outputs.txt` — SQL query strings and their corresponding outputs.
+
+---
+
+## Notes
+
+The original scraped CSV is kept separately from the cleaned CSV so that the raw data is preserved and the cleaning process remains reproducible.
